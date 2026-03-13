@@ -305,19 +305,17 @@ function createHttpTransport(
     config.transportType ??
     (url.pathname.split("/").includes("sse") ? "sse" : "streamable-http");
 
+  const transportOptions = {
+    requestInit: {
+      headers: config.headers,
+    },
+  };
+
   switch (transportType) {
     case "sse":
-      return new SSEClientTransport(url, {
-        requestInit: {
-          headers: config.headers,
-        },
-      });
+      return new SSEClientTransport(url, transportOptions);
     case "streamable-http":
-      return new StreamableHTTPClientTransport(url, {
-        requestInit: {
-          headers: config.headers,
-        },
-      });
+      return new StreamableHTTPClientTransport(url, transportOptions);
     default:
       throw new Error(
         `Invalid transportType: ${transportType}. Expected "sse" or "streamable-http".`,
