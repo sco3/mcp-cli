@@ -501,8 +501,14 @@ export async function loadConfig(
         }),
       );
     }
+  }
 
-    // Validate transportType for HTTP servers
+  // Substitute environment variables
+  config = substituteEnvVarsInObject(config);
+
+  // Validate transportType for HTTP servers (after env substitution)
+  for (const [serverName, serverConfig] of Object.entries(config.mcpServers)) {
+    const hasUrl = 'url' in serverConfig;
     if (hasUrl && 'transportType' in serverConfig) {
       const transportType = serverConfig.transportType;
       if (
@@ -521,9 +527,6 @@ export async function loadConfig(
       }
     }
   }
-
-  // Substitute environment variables
-  config = substituteEnvVarsInObject(config);
 
   return config;
 }
