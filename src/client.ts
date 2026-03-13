@@ -5,6 +5,7 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import {
   type HttpServerConfig,
@@ -236,7 +237,7 @@ export async function connectToServer(
       },
     );
 
-    let transport: StdioClientTransport | StreamableHTTPClientTransport;
+    let transport: StdioClientTransport | StreamableHTTPClientTransport | SSEClientTransport;
 
     if (isHttpServer(config)) {
       transport = createHttpTransport(config);
@@ -289,12 +290,25 @@ export async function connectToServer(
 
 /**
  * Create HTTP transport for remote servers
+ * Auto-detects transport type based on URL path or explicit config
  */
 function createHttpTransport(
   config: HttpServerConfig,
-): StreamableHTTPClientTransport {
+): StreamableHTTPClientTransport | SSEClientTransport {
   const url = new URL(config.url);
-
+  
+  // Auto-detect transport type if not specified
+  const transportType = config.transportType ?? 
+    (url.pathname.endsWith('/sse') || url.pathname.includes('/sse/') ? 'sse' : 'streamable-http');
+  
+  if (transportType === 'sse') {
+    return new SSEClientTransport(url, {
+      requestInit: {
+        headers: config.headers,
+      },
+    });
+  }
+  
   return new StreamableHTTPClientTransport(url, {
     requestInit: {
       headers: config.headers,

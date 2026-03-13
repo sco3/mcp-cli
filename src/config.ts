@@ -48,6 +48,13 @@ export interface HttpServerConfig extends BaseServerConfig {
   url: string;
   headers?: Record<string, string>;
   timeout?: number;
+  /**
+   * Transport type for HTTP connection
+   * - 'streamable-http': Uses Streamable HTTP transport (default, recommended)
+   * - 'sse': Uses legacy Server-Sent Events transport
+   * If not specified, auto-detects based on URL path (/sse -> 'sse', others -> 'streamable-http')
+   */
+  transportType?: 'streamable-http' | 'sse';
 }
 
 export type ServerConfig = StdioServerConfig | HttpServerConfig;
