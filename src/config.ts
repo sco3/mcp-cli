@@ -501,6 +501,25 @@ export async function loadConfig(
         }),
       );
     }
+
+    // Validate transportType for HTTP servers
+    if (hasUrl && 'transportType' in serverConfig) {
+      const transportType = serverConfig.transportType;
+      if (
+        typeof transportType !== 'string' ||
+        (transportType !== 'sse' && transportType !== 'streamable-http')
+      ) {
+        throw new Error(
+          formatCliError({
+            code: ErrorCode.CLIENT_ERROR,
+            type: 'CONFIG_INVALID_SERVER',
+            message: `Invalid transportType for server "${serverName}"`,
+            details: `transportType must be "sse" or "streamable-http", got: ${JSON.stringify(transportType)}`,
+            suggestion: `Set "transportType" to "sse" for legacy SSE servers or "streamable-http" for modern servers (default)`,
+          }),
+        );
+      }
+    }
   }
 
   // Substitute environment variables
